@@ -10,7 +10,7 @@ const db = admin.firestore();
 const baseEventsCollectionName = process.env.BASE_EVENTS_COLLECTION_NAME;
 const eventBookingsCollectionName = process.env.EVENT_BOOKINGS_COLLECTION_NAME;
 
-exports.bookEventSlot = async (req, res) => {
+exports.bookEventSlots = async (req, res) => {
     let baseEventId = req.body.baseEventId;
     let countForBooking = req.body.countForBooking;
     let eventDatetime = req.body.eventDatetime;
@@ -26,7 +26,7 @@ exports.bookEventSlot = async (req, res) => {
 
                 let occupiedSlots = 0;
 
-                eventBookings.forEach(eventBooking => {
+                eventBookings.data().forEach(eventBooking => {
                     occupiedSlots += eventBooking.occupation;
                 });
 
