@@ -11,6 +11,6 @@ const sessionsCollectionName = process.env.SESSIONS_COLLECTION_NAME;
 
 exports.createSession = async (req, res) => {
     let baseEventIds = req.body.baseEventIds;
-    let addedSession = await db.collection(sessionsCollectionName).add({ baseEventIds });
-    res.status(200).send(addedSession.id);
+    let addedSessionRef = await db.collection(sessionsCollectionName).add({ baseEventIds });
+    res.status(200).send(addedSessionRef.id);
 };

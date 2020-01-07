@@ -15,19 +15,19 @@ exports.unbookEventSlots = async (req, res) => {
     let countForUnbooking = req.body.countForUnbooking;
     let eventDatetime = req.body.eventDatetime;
 
-    let baseEvent = db.collection(baseEventsCollectionName).doc(baseEventId);
+    let baseEventRef = db.collection(baseEventsCollectionName).doc(baseEventId);
 
-    let slotsQuery = baseEvent.collection(eventBookingsCollectionName)
+    let slotsQuery = baseEventRef.collection(eventBookingsCollectionName)
         .where('eventDatetime', '==', eventDatetime);
 
     db.runTransaction(t => {
         return t.get(slotsQuery)
-            .then(eventBookings => {
+            .then(eventBookingsSnapshot => {
 
                 let occupiedSlots = 0;
 
-                eventBookings.data().forEach(eventBooking => {
-                    occupiedSlots += eventBooking.occupation;
+                eventBookingsSnapshot.forEach(eventBooking => {
+                    occupiedSlots += eventBooking.data().occupation;
                 });
 
                 if (countForUnbooking > occupiedSlots) {
@@ -35,7 +35,7 @@ exports.unbookEventSlots = async (req, res) => {
                 }
 
                 for (let i = 0; i < countForUnbooking; i++) {
-                    let newBookingRef = baseEvent.collection(eventBookingsCollectionName).doc();
+                    let newBookingRef = baseEventRef.collection(eventBookingsCollectionName).doc();
                     t.set(newBookingRef, {
                         eventDatetime,
                         occupation: -1,
@@ -47,5 +47,5 @@ exports.unbookEventSlots = async (req, res) => {
         res.status(200).send(`${countForUnbooking} places successfully unbooked`);
     }).catch(err => {
         res.status(400).send(err);
-    });    
+    });
 };

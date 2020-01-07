@@ -16,7 +16,8 @@ exports.getAvailableEventSlots = async (req, res) => {
 
     let result = null;
 
-    let baseEvent = db.collection(baseEventsCollectionName).doc(baseEventId);
+    let baseEventRef = db.collection(baseEventsCollectionName).doc(baseEventId);
+    let baseEvent = await (baseEventRef.get()).data();
     let timezone = baseEvent.timezone;
 
     let dateMoment = moment.tz(date, timezone);
@@ -25,11 +26,11 @@ exports.getAvailableEventSlots = async (req, res) => {
 
     if (existsEventMoment) {
         let occupiedSlots = 0;
-        let eventBookings = await baseEvent.collection(eventBookingsCollectionName)
+        let eventBookingsSnapshot = await baseEventRef.collection(eventBookingsCollectionName)
             .where('eventDatetime', '==', existsEventMoment)
             .get();
-        eventBookings.forEach(eventBooking => {
-            occupiedSlots += eventBooking.occupation;
+        eventBookingsSnapshot.forEach(eventBooking => {
+            occupiedSlots += eventBooking.data().occupation;
         });
         result = baseEvent.slotsCount - occupiedSlots;
     }
