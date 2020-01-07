@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/olegtsesko/bookable#readme",
   "dependencies": {
-    "express": "^4.17.1",
-    "mongodb": "^3.4.0"
+    "request": "^2.88.0"
   }
 }
