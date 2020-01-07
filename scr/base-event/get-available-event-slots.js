@@ -7,13 +7,16 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+const baseEventsCollectionName = process.env.BASE_EVENTS_COLLECTION_NAME;
+const eventBookingsCollectionName = process.env.EVENT_BOOKINGS_COLLECTION_NAME;
+
 exports.getAvailableEventSlots = async (req, res) => {
     let date = req.query.date;
     let baseEventId = req.query.baseEventId;
 
     let result = null;
 
-    let baseEvent = db.collection('base-events').doc(baseEventId);
+    let baseEvent = db.collection(baseEventsCollectionName).doc(baseEventId);
     let timezone = baseEvent.timezone;
 
     let dateMoment = moment.tz(date, timezone);
@@ -22,7 +25,7 @@ exports.getAvailableEventSlots = async (req, res) => {
 
     if (existsEventMoment) {
         let occupiedSlots = 0;
-        let eventBookings = await baseEvent.collection('event-bookings')
+        let eventBookings = await baseEvent.collection(eventBookingsCollectionName)
             .where('eventDatetime', '==', existsEventMoment)
             .get();
         eventBookings.forEach(eventBooking => {

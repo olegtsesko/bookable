@@ -7,6 +7,8 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+const baseEventsCollectionName = process.env.BASE_EVENTS_COLLECTION_NAME;
+
 exports.createBaseEvent = async (req, res) => {
     let weekDays = req.body.weekDays;
     let startDate = req.body.startDate;
@@ -42,7 +44,7 @@ exports.createBaseEvent = async (req, res) => {
         }
     })
 
-    let addedBaseEvent = await db.collection('base-events').add({
+    let addedBaseEvent = await db.collection(baseEventsCollectionName).add({
         weekDays,
         startDate,
         endDate,
