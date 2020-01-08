@@ -8,7 +8,6 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const baseEventsCollectionName = process.env.BASE_EVENTS_COLLECTION_NAME;
-const eventBookingsCollectionName = process.env.EVENT_BOOKINGS_COLLECTION_NAME;
 
 exports.getAvailableEventSlots = async (req, res) => {
     let date = req.query.date;
@@ -22,13 +21,22 @@ exports.getAvailableEventSlots = async (req, res) => {
 
     let dateMoment = moment.tz(date, timezone);
 
-    let existsEventMoment = baseEvent.instances.find(instance => moment.tz(instance, timezone).isSame(dateMoment));
+    let isWeekDayInRule = baseEvent.weekDays.some((weekDay, index) => {
+        if (weekDay) {
+            let weekDayNumber = index + 1;
+            return dateMoment.day() === weekDayNumber;
+        }
+        else return false;
+    });
 
-    if (existsEventMoment) {
+    let startDateMoment = moment(baseEvent.startDate);
+    let endDateMoment = moment(baseEvent.endDate);
+
+    let isDiapasonInRule = startDateMoment.isBefore(dateMoment) && dateMoment.isBefore(endDateMoment);
+
+    if (isWeekDayInRule && isDiapasonInRule) {
         let occupiedSlots = 0;
-        let eventBookingsSnapshot = await baseEventRef.collection(eventBookingsCollectionName)
-            .where('eventDatetime', '==', existsEventMoment)
-            .get();
+        let eventBookingsSnapshot = await baseEventRef.collection(date).get();
         eventBookingsSnapshot.forEach(eventBooking => {
             occupiedSlots += eventBooking.data().occupation;
         });

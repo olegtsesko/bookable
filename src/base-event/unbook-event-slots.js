@@ -8,17 +8,15 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const baseEventsCollectionName = process.env.BASE_EVENTS_COLLECTION_NAME;
-const eventBookingsCollectionName = process.env.EVENT_BOOKINGS_COLLECTION_NAME;
 
 exports.unbookEventSlots = async (req, res) => {
     let baseEventId = req.body.baseEventId;
     let countForUnbooking = req.body.countForUnbooking;
-    let eventDatetime = req.body.eventDatetime;
+    let date = req.body.date;
 
     let baseEventRef = db.collection(baseEventsCollectionName).doc(baseEventId);
 
-    let slotsQuery = baseEventRef.collection(eventBookingsCollectionName)
-        .where('eventDatetime', '==', eventDatetime);
+    let slotsQuery = baseEventRef.collection(date);
 
     db.runTransaction(t => {
         return t.get(slotsQuery)
@@ -35,7 +33,7 @@ exports.unbookEventSlots = async (req, res) => {
                 }
 
                 for (let i = 0; i < countForUnbooking; i++) {
-                    let newBookingRef = baseEventRef.collection(eventBookingsCollectionName).doc();
+                    let newBookingRef = baseEventRef.collection(date).doc();
                     t.set(newBookingRef, {
                         eventDatetime,
                         occupation: -1,
