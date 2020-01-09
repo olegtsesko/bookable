@@ -10,6 +10,7 @@ const db = admin.firestore();
 
 const sessionsCollectionName = process.env.SESSIONS_COLLECTION_NAME;
 const getAvailableEventSlotsUrl = process.env.GET_AVAILABLE_EVENT_SLOTS_URL;
+const getAvailableSessionSlotsUrl = process.env.GET_AVAILABLE_SESSION_SLOTS_URL;
 
 exports.getAvailableSessionSlots = async (req, res) => {
     let sessionId = req.body.sessionId;
@@ -18,19 +19,17 @@ exports.getAvailableSessionSlots = async (req, res) => {
     let sessionRef = db.collection(sessionsCollectionName).doc(sessionId);
     let session = (await sessionRef.get()).data();
 
-    let options = {
-        headers: {
-            'User-Agent': 'Request-Promise'
-        },
-        json: true
-    };
-
     let minimalAvailableSlotsCount = null;
 
-    session.baseEventIds.forEach((baseEventId, index) => {
-        options.uri = `${getAvailableEventSlotsUrl}?baseEventId=${baseEventId}&date=${dates[index]}`;
+    let elems = session.baseEventIds;
+    if (!elems) elems = session.sessionIds;
+
+    let uri = session.baseEventIds ? getAvailableEventSlotsUrl : getAvailableSessionSlotsUrl;
+
+    elems.forEach((id, index) => {
+        let body = session.baseEventIds ? { baseEventId: id, date: dates[index] } : { sessionId: id, dates: dates[index] }
         try {
-            let availableSlotsCount = await request(options);
+            let availableSlotsCount = await request.post(uri, body);
             if (minimalAvailableSlotsCount === null || minimalAvailableSlotsCount > availableSlotsCount) {
                 minimalAvailableSlotsCount = availableSlotsCount;
             }
